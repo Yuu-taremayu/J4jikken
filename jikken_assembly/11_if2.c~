@@ -1,0 +1,17 @@
+#include "h8-3052-iodef.h"
+
+int main(void)
+{
+  int i;
+
+  int = 10;
+
+  if (i >= 0) {
+    i = 255;
+  }
+  else {
+    i = 0;
+  }
+
+  return 0;
+}
