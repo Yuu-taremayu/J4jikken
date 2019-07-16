@@ -1,0 +1,17 @@
+#include "h8-3069-iodef.h"
+
+#pragma interrupt
+void int_imia0(void)
+{
+  timer_intflag_reset(0); /* 割り込みフラグをクリア */
+  ENINT();                /* CPUを割り込み許可状態に */
+
+}
+
+#pragma interrupt
+void int_adi(void)
+{
+  ad_stop();    /* A/D変換の停止と変換終了フラグのクリア */
+  
+  ENINT();      /* 割り込みの許可 */
+}
