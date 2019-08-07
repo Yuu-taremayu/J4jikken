@@ -1,17 +1,227 @@
 #include "h8-3069-iodef.h"
+#include "h8-3069-int.h"
+
+#include "lcd.h"
+#include "ad.h"
+#include "timer.h"
+#include "random.h"
+#include "sci2.h"
+
+/* タイマ割り込みの時間間隔[μs] */
+#define TIMER0 1000
+
+/* 割り込み処理で各処理を行う頻度を決める定数 */
+#define DISPTIME 100
+#define ADTIME 2
+#define CONTROLTIME 10
+
+/* LCD表示関連 */
+/* 1段に表示できる文字数 */
+#define LCDDISPSIZE 8
+
+/* ライントレーサーの移動方向を決めるビット位置 */
+#define STOP 0x00
+#define GO 0x05
+#define BACK 0x0a
+#define RIGHTTURN 0x09
+#define LEFTTURN 0x06
+#define BRAKE 0x0f
+
+#define RIGHTSENSOR 2
+#define LEFTSENSOR 1
+
+#define WAITTIME 100
+
+/* A/D変換関連 */
+/* A/D変換のチャネル数とバッファサイズ */
+#define ADCHNUM   4
+#define ADBUFSIZE 8
+/* 平均化するときのデータ個数 */
+#define ADAVRNUM 4
+/* チャネル指定エラー時に返す値 */
+#define ADCHNONE -1
+
+/* 割り込み処理に必要な変数は大域変数にとる */
+volatile int disp_time, ad_time, control_time, wait_time;
+
+/* LCD関係 */
+volatile int disp_flag;
+volatile char lcd_str_upper[LCDDISPSIZE+1] = "wawawa";
+volatile char lcd_str_lower[LCDDISPSIZE+1] = "L   R   \0";
+
+/* A/D変換関係 */
+volatile unsigned char adbuf[ADCHNUM][ADBUFSIZE];
+volatile int adbufdp;
+
+volatile int ad_right_sensor;
+volatile int ad_left_sensor;
+
+int main(void);
+void int_imia0(void);
+void int_adi(void);
+int ad_read(int ch);
+void control_proc(void);
+
+int main(void)
+{
+  /* ROMエミュレーションをON */
+  ROMEMU();
+  
+  /* モータ用のポートの初期化 */
+  /* PB0~PB3を出力に設定 */
+  PBDDR |= 0x0f;
+
+  /* スイッチ用のポートの初期化 */
+  /* P60,P61を入力に設定 */
+  P6DDR &= ~0x02;
+
+  PBDR = STOP;
+  
+  disp_time = 0;
+  disp_flag = 1;
+  ad_time = 0;
+  control_time = 0;
+  wait_time = 0;
+
+  adbufdp = 0;
+  ad_init();
+  lcd_init();
+  timer_init();
+  timer_set(0, TIMER0);
+  timer_start(0);
+  ENINT();
+
+  lcd_clear();
+
+  while (1) {
+    if (disp_flag == 1) {
+      lcd_cursor(0, 0);
+      lcd_printstr(lcd_str_upper);
+      lcd_cursor(0, 1);
+      lcd_printstr(lcd_str_lower);
+      disp_flag = 0;
+    }
+  }
+      
+  return 0;
+}
 
 #pragma interrupt
 void int_imia0(void)
 {
-  timer_intflag_reset(0); /* 割り込みフラグをクリア */
-  ENINT();                /* CPUを割り込み許可状態に */
+  disp_time++;
+  if (disp_time >= DISPTIME) {
+    disp_flag = 1;
+    disp_time = 0;
+  }
 
+  ad_time++;
+  if (ad_time >= ADTIME) {
+    ad_scan(0, 1);
+    ad_time = 0;
+  }
+
+  control_time++;
+  if (control_time >= CONTROLTIME) {
+    control_proc();
+    control_time = 0;
+  }
+  
+  timer_intflag_reset(0);
+  ENINT();
 }
 
 #pragma interrupt
 void int_adi(void)
 {
-  ad_stop();    /* A/D変換の停止と変換終了フラグのクリア */
+  ad_stop();
+
+  adbufdp = (adbufdp + 1) % ADBUFSIZE;
   
-  ENINT();      /* 割り込みの許可 */
+  adbuf[0][adbufdp] = ADDRAH;
+  adbuf[1][adbufdp] = ADDRBH;
+  adbuf[2][adbufdp] = ADDRCH;
+  adbuf[3][adbufdp] = ADDRDH;
+  
+  ENINT();
+}
+
+int ad_read(int ch)
+{
+  int i, ad, bp;
+
+  if ((ch > ADCHNUM) || (ch < 0)) {
+    ad = ADCHNONE;
+  }
+  else {
+    ad = 0;
+    bp = adbufdp - (ADAVRNUM - 1);
+
+    if (bp < 0) bp += ADBUFSIZE;
+
+    for (i = 0; i < ADAVRNUM; i++) {
+      ad += (int)adbuf[ch][(bp + i) % ADBUFSIZE];
+    }
+    ad /= ADAVRNUM;
+  }
+
+  return ad;
+}
+
+void control_proc(void)
+{
+  int i;
+  unsigned char *old_state;
+  char str_online[LCDDISPSIZE + 1] = "ON LINE!\0";
+  char str_offline[LCDDISPSIZE + 1] = " OFFLINE\0";
+  char str_error[LCDDISPSIZE + 1] = "ERROR...\0";
+  
+  ad_right_sensor = ad_read(RIGHTSENSOR);
+  ad_left_sensor = ad_read(LEFTSENSOR);
+
+  /* A/D変換値の表示の更新 */
+  lcd_str_lower[1] = ad_right_sensor / 100 + '0';
+  lcd_str_lower[2] = (ad_right_sensor / 10) % 10 + '0';
+  lcd_str_lower[3] = ad_right_sensor % 10 + '0';
+
+  lcd_str_lower[5] = ad_left_sensor / 100 + '0';
+  lcd_str_lower[6] = (ad_left_sensor / 10) % 10 + '0';
+  lcd_str_lower[7] = ad_left_sensor % 10 + '0';
+
+  old_state = PBDR;
+
+  if (ad_right_sensor <= 30 && ad_left_sensor <= 30) {
+    PBDR = GO;
+    for (i = 0; i < LCDDISPSIZE; i++) {
+      lcd_str_upper[i] = str_online[i];
+    }
+  }
+  else if (ad_right_sensor <= 30 && ad_left_sensor >= 150) {
+    PBDR = RIGHTTURN;
+    lcd_str_upper[0] = 'L';
+    for (i = 1; i < LCDDISPSIZE; i++) {
+      lcd_str_upper[i] = str_offline[i];
+    }
+  }
+  else if (ad_right_sensor >= 150 && ad_left_sensor <= 30) {
+    PBDR = LEFTTURN;
+    lcd_str_upper[0] = 'R';
+    for (i = 1; i < LCDDISPSIZE; i++) {
+      lcd_str_upper[i] = str_offline[i];
+    }
+  }
+  else if (ad_right_sensor >= 150 && ad_left_sensor >= 150) {
+    PBDR = BACK;
+    lcd_str_upper[0] = 'W';
+    for (i = 0; i < LCDDISPSIZE; i++) {
+      lcd_str_upper[i] = str_offline[i];
+    }
+  }
+  else {
+    PBDR = BRAKE;
+    for (i = 0; i < LCDDISPSIZE; i++) {
+      lcd_str_upper[i] = str_error[i];
+    }
+  }
+
 }

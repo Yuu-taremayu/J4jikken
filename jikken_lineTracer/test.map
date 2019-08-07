@@ -1,28 +1,33 @@
 Archive member included because of file (symbol)
 
+/home/local/bin/../lib/gcc-lib/h8300-hms/3.3.6/h8300h/int32/libgcc.a(_divsi3.o)
+                              myLinetracer.o (___modsi3)
 /home/local/bin/../lib/gcc-lib/h8300-hms/3.3.6/h8300h/int32/libgcc.a(_mulsi3.o)
                               timer.o (___mulsi3)
-/home/local/bin/../lib/gcc-lib/h8300-hms/3.3.6/h8300h/int32/libgcc.a(_divsi3.o)
-                              timer.o (___udivsi3)
+/home/local/bin/../lib/gcc-lib/h8300-hms/3.3.6/../../../../h8300-hms/lib/h8300h/int32/libg.a(lib_a-memcpy.o)
+                              myLinetracer.o (_memcpy)
 /home/local/bin/../lib/gcc-lib/h8300-hms/3.3.6/../../../../h8300-hms/lib/h8300h/int32/libg.a(lib_a-strlen.o)
                               lcd.o (_strlen)
 
 Allocating common symbols
 Common symbol       size              file
 
-redval              0x1               myLinetracer2.o
-pwm_count           0x4               myLinetracer2.o
-disp_flag           0x4               myLinetracer2.o
-adbufdp             0x4               myLinetracer2.o
-greenval            0x1               myLinetracer2.o
-lcd_str_lower       0x11              myLinetracer2.o
-adbuf               0x20              myLinetracer2.o
-pwm_time            0x4               myLinetracer2.o
-lcd_str_upper       0x11              myLinetracer2.o
-disp_time           0x4               myLinetracer2.o
-ad_time             0x4               myLinetracer2.o
-control_time        0x4               myLinetracer2.o
-key_time            0x4               myLinetracer2.o
+oldstatebufdp       0x4               myLinetracer.o
+pwm_count           0x4               myLinetracer.o
+disp_flag           0x4               myLinetracer.o
+adbufdp             0x4               myLinetracer.o
+oldstatebuf         0x50              myLinetracer.o
+ad_left_sensor      0x4               myLinetracer.o
+adbuf               0x20              myLinetracer.o
+ad_right_sensor     0x4               myLinetracer.o
+pwm_time            0x4               myLinetracer.o
+lcd_str_upper       0x9               myLinetracer.o
+wait_time           0x4               myLinetracer.o
+disp_time           0x4               myLinetracer.o
+ad_time             0x4               myLinetracer.o
+control_time        0x4               myLinetracer.o
+r_ct                0x4               myLinetracer.o
+l_ct                0x4               myLinetracer.o
 
 Memory Configuration
 
@@ -33,9 +38,8 @@ ram              0x00400000         0x001f0000
 Linker script and memory map
 
 LOAD ./ramcrt-ext.o
-LOAD myLinetracer2.o
+LOAD myLinetracer.o
 LOAD lcd.o
-LOAD loader.o
 LOAD random.o
 LOAD ad.o
 LOAD sci2.o
@@ -71,8 +75,8 @@ LOAD /home/local/bin/../lib/gcc-lib/h8300-hms/3.3.6/h8300h/int32/libgcc.a
                 0x00ffe050        0x4 LONG 0x400000 DEFINED (_int_wovi)?<code 340> (_int_wovi):<code 340> (_start)
                 0x00ffe054        0x4 LONG 0x400000 <code 340> (_start)
                 0x00ffe058        0x4 LONG 0x400000 <code 340> (_start)
-                0x00ffe05c        0x4 LONG 0x40026e DEFINED (_int_adi)?<code 340> (_int_adi):<code 340> (_start)
-                0x00ffe060        0x4 LONG 0x400174 DEFINED (_int_imia0)?<code 340> (_int_imia0):<code 340> (_start)
+                0x00ffe05c        0x4 LONG 0x400206 DEFINED (_int_adi)?<code 340> (_int_adi):<code 340> (_start)
+                0x00ffe060        0x4 LONG 0x4000fa DEFINED (_int_imia0)?<code 340> (_int_imia0):<code 340> (_start)
                 0x00ffe064        0x4 LONG 0x400000 DEFINED (_int_imib0)?<code 340> (_int_imib0):<code 340> (_start)
                 0x00ffe068        0x4 LONG 0x400000 DEFINED (_int_ovi0)?<code 340> (_int_ovi0):<code 340> (_start)
                 0x00ffe06c        0x4 LONG 0x400000 <code 340> (_start)
@@ -113,95 +117,105 @@ LOAD /home/local/bin/../lib/gcc-lib/h8300-hms/3.3.6/h8300h/int32/libgcc.a
                 0x00ffe0f8        0x4 LONG 0x400000 <code 340> (_start)
                 0x00ffe0fc        0x4 LONG 0x400000 <code 340> (_start)
 
-.text           0x00400000     0x10b8
+.text           0x00400000      0xfd2
                 0x00400000                __text_start = .
  *(.text)
- .text          0x00400000        0xe ./ramcrt-ext.o
+ .text          0x00400000        0xc ./ramcrt-ext.o
+                                  0xe (size before relaxing)
                 0x00400000                _start
- .text          0x0040000e      0x40e myLinetracer2.o
-                0x0040026e                _int_adi
-                0x0040030a                _ad_read
-                0x00400174                _int_imia0
-                0x00400410                _control_proc
-                0x00400394                _pwm_proc
-                0x0040000e                _main
- .text          0x0040041c      0x1b0 lcd.o
-                0x0040041c                _lcd_init
-                0x004005a4                _wait1ms
-                0x00400516                _lcd_printstr
-                0x0040055c                _lcd_printch
-                0x004004a8                _lcd_cursor
-                0x004004fa                _lcd_clear
-                0x0040056e                _lcd_putch
- .text          0x004005cc      0x3c0 loader.o
-                0x0040097e                _call
-                0x00400660                _sload
- .text          0x0040098c       0x50 random.o
-                0x00400998                _random
-                0x0040098c                _random_init
- .text          0x004009dc       0x82 ad.o
-                0x004009dc                _ad_init
-                0x00400a1e                _ad_scan
-                0x00400a46                _ad_stop
-                0x004009f8                _ad_start
- .text          0x00400a5e      0x1b0 sci2.o
-                0x00400bf4                _putch
-                0x00400a8a                _numtohex
-                0x00400b8a                _putstr
-                0x00400abe                _gethex
-                0x00400b14                _getch
-                0x00400a5e                _init_sci2
-                0x00400aa4                _hextonum
- .text          0x00400c0e      0x2ca timer.o
-                0x00400c0e                _timer_set
-                0x00400e80                _timer_init
-                0x00400e2a                _timer_start
-                0x00400e54                _timer_stop
-                0x00400eb0                _timer_intflag_reset
- .text          0x00400ed8       0x18 /home/local/bin/../lib/gcc-lib/h8300-hms/3.3.6/h8300h/int32/libgcc.a(_mulsi3.o)
-                0x00400ed8                ___mulsi3
- .text          0x00400ef0       0xc8 /home/local/bin/../lib/gcc-lib/h8300-hms/3.3.6/h8300h/int32/libgcc.a(_divsi3.o)
-                0x00400f3c                ___umodsi3
-                0x00400f50                ___divsi3
-                0x00400f16                ___modsi3
-                0x00400f2a                ___udivsi3
- .text          0x00400fb8       0x3c /home/local/bin/../lib/gcc-lib/h8300-hms/3.3.6/../../../../h8300-hms/lib/h8300h/int32/libg.a(lib_a-strlen.o)
-                0x00400fb8                _strlen
+ .text          0x0040000c      0x77c myLinetracer.o
+                                0x780 (size before relaxing)
+                0x00400206                _int_adi
+                0x00400064                _all_init
+                0x004002bc                _ad_read
+                0x004000fa                _int_imia0
+                0x0040048a                _control_proc
+                0x00400346                _pwm_proc
+                0x0040000c                _main
+ .text          0x00400788      0x1a8 lcd.o
+                                0x1b0 (size before relaxing)
+                0x00400788                _lcd_init
+                0x00400908                _wait1ms
+                0x0040087e                _lcd_printstr
+                0x004008c2                _lcd_printch
+                0x00400814                _lcd_cursor
+                0x00400864                _lcd_clear
+                0x004008d2                _lcd_putch
+ .text          0x00400930       0x50 random.o
+                0x0040093c                _random
+                0x00400930                _random_init
+ .text          0x00400980       0x82 ad.o
+                0x00400980                _ad_init
+                0x004009c2                _ad_scan
+                0x004009ea                _ad_stop
+                0x0040099c                _ad_start
+ .text          0x00400a02      0x1a6 sci2.o
+                                0x1b0 (size before relaxing)
+                0x00400b8e                _putch
+                0x00400a2e                _numtohex
+                0x00400b28                _putstr
+                0x00400a62                _gethex
+                0x00400ab4                _getch
+                0x00400a02                _init_sci2
+                0x00400a48                _hextonum
+ .text          0x00400ba8      0x2ca timer.o
+                0x00400ba8                _timer_set
+                0x00400e1a                _timer_init
+                0x00400dc4                _timer_start
+                0x00400dee                _timer_stop
+                0x00400e4a                _timer_intflag_reset
+ .text          0x00400e72       0xc4 /home/local/bin/../lib/gcc-lib/h8300-hms/3.3.6/h8300h/int32/libgcc.a(_divsi3.o)
+                                 0xc8 (size before relaxing)
+                0x00400ebe                ___umodsi3
+                0x00400ed2                ___divsi3
+                0x00400e98                ___modsi3
+                0x00400eac                ___udivsi3
+ .text          0x00400f36       0x18 /home/local/bin/../lib/gcc-lib/h8300-hms/3.3.6/h8300h/int32/libgcc.a(_mulsi3.o)
+                0x00400f36                ___mulsi3
+ .text          0x00400f4e       0x2c /home/local/bin/../lib/gcc-lib/h8300-hms/3.3.6/../../../../h8300-hms/lib/h8300h/int32/libg.a(lib_a-memcpy.o)
+                0x00400f4e                _memcpy
+ .text          0x00400f7a       0x3c /home/local/bin/../lib/gcc-lib/h8300-hms/3.3.6/../../../../h8300-hms/lib/h8300h/int32/libg.a(lib_a-strlen.o)
+                0x00400f7a                _strlen
  *(.rodata)
- .rodata        0x00400ff4       0xc4 loader.o
+ .rodata        0x00400fb6       0x1c myLinetracer.o
  *(.strings)
-                0x004010b8                __text_end = .
+                0x00400fd2                __text_end = .
 
-.tors           0x004010b8        0x0
-                0x004010b8                ___ctors = .
+.tors           0x00400fd2        0x0
+                0x00400fd2                ___ctors = .
  *(.ctors)
-                0x004010b8                ___ctors_end = .
-                0x004010b8                ___dtors = .
+                0x00400fd2                ___ctors_end = .
+                0x00400fd2                ___dtors = .
  *(.dtors)
-                0x004010b8                ___dtors_end = .
+                0x00400fd2                ___dtors_end = .
 
-.data           0x004010b8        0x0
-                0x004010b8                __data_start = .
+.data           0x00400fd2        0xa
+                0x00400fd2                __data_start = .
  *(.data)
-                0x004010b8                __edata = .
+ .data          0x00400fd2        0xa myLinetracer.o
+                0x00400fd2                _lcd_str_lower
+                0x00400fdc                __edata = .
 
-.bss            0x004010c0       0x94
-                0x004010c0                __bss_start = .
+.bss            0x00400fe0       0xbc
+                0x00400fe0                __bss_start = .
  *(.bss)
  *(COMMON)
- COMMON         0x004010c0       0x94 myLinetracer2.o
-                0x004010c0                _redval
-                0x004010c4                _pwm_count
-                0x004010c8                _disp_flag
-                0x004010cc                _adbufdp
-                0x004010d0                _greenval
-                0x004010e0                _lcd_str_lower
-                0x00401100                _adbuf
-                0x00401120                _pwm_time
-                0x00401130                _lcd_str_upper
-                0x00401144                _disp_time
-                0x00401148                _ad_time
-                0x0040114c                _control_time
-                0x00401150                _key_time
-                0x00401154                __bss_end = .
+ COMMON         0x00400fe0       0xbc myLinetracer.o
+                0x00400fe0                _oldstatebufdp
+                0x00400fe4                _pwm_count
+                0x00400fe8                _disp_flag
+                0x00400fec                _adbufdp
+                0x00400ff0                _oldstatebuf
+                0x00401040                _ad_left_sensor
+                0x00401050                _adbuf
+                0x00401070                _ad_right_sensor
+                0x00401074                _pwm_time
+                0x00401078                _lcd_str_upper
+                0x00401084                _wait_time
+                0x00401088                _disp_time
+                0x0040108c                _ad_time
+                0x00401090                _control_time
+                0x00401094                _r_ct
+                0x00401098                _l_ct
+                0x0040109c                __bss_end = .
 OUTPUT(test.coff coff-h8300)
